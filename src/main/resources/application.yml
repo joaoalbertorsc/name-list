@@ -1,0 +1,27 @@
+spring:
+  application:
+    name: name-list
+  # Defaults for running the jar on the host against the MySQL container from docker-compose.yml.
+  # Inside a container, override the URL with the SPRING_DATASOURCE_URL environment variable.
+  datasource:
+    url: jdbc:mysql://localhost:3306/name_list
+    username: namelist
+    password: namelist
+  sql:
+    init:
+      # Run schema.sql on startup even though MySQL is not an embedded database
+      mode: always
+  jpa:
+    hibernate:
+      # The table comes from schema.sql; Hibernate only checks that the entity matches it
+      ddl-auto: validate
+    open-in-view: false
+  jackson:
+    mapper:
+      # Keep JSON fields in the order they are declared in the model, starting with the id
+      sort-properties-alphabetically: false
+      sort-creator-properties-first: false
+
+server:
+  # The port the API listens on inside the container; publish it with `docker run -p <host-port>:8080`
+  port: 8080

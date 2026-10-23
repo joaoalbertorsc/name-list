@@ -1,0 +1,33 @@
+name: name-list
+
+services:
+  mysql:
+    image: mysql:8.4
+    container_name: name-list-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      # Database and user created on the first startup; the application connects with them
+      MYSQL_DATABASE: name_list
+      MYSQL_USER: namelist
+      MYSQL_PASSWORD: namelist
+    ports:
+      # Published so the application can also run on the host with `./mvnw spring-boot:run`
+      - "3306:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+    healthcheck:
+      # `docker compose up --wait` returns only once MySQL accepts connections. 127.0.0.1 forces TCP,
+      # which the temporary server MySQL runs during its first-time setup does not listen on.
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-u", "namelist", "-pnamelist"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+volumes:
+  # Keeps the stored names when the container is recreated; `docker compose down -v` erases them
+  mysql-data:
+
+networks:
+  default:
+    # Fixed name, so the application container can join it with `docker run --network name-list-network`
+    name: name-list-network

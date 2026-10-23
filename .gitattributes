@@ -1,0 +1,9 @@
+* text=auto
+
+# Executed inside Linux containers and CI runners: must keep LF endings
+mvnw text eol=lf
+*.sh text eol=lf
+Dockerfile text eol=lf
+
+# Executed by Windows shells
+*.cmd text eol=crlf

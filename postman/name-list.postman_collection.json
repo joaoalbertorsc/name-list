@@ -1,0 +1,310 @@
+{
+  "info": {
+    "name": "Name List",
+    "description": "Calls the name-list API running in Docker. Run the whole collection in order (Run collection): it inserts a repeated name, renames all of its records at once, then deletes all of them at once.\n\nThe `baseUrl` collection variable must point to the host port published with `docker run -p <host-port>:8080`.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080",
+      "type": "string"
+    },
+    {
+      "key": "repeatedName",
+      "value": "Ana",
+      "type": "string"
+    },
+    {
+      "key": "newName",
+      "value": "Carla",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Insert name",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('responds with 201 Created', () => pm.response.to.have.status(201));",
+              "",
+              "pm.test('returns the stored record with its id', () => {",
+              "    const record = pm.response.json();",
+              "    pm.expect(record.id).to.be.a('number');",
+              "    pm.expect(record.name).to.eql(pm.collectionVariables.get('repeatedName'));",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"name\": \"{{repeatedName}}\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/names",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "v1", "names"]
+        }
+      }
+    },
+    {
+      "name": "Insert the same name again",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('responds with 201 Created', () => pm.response.to.have.status(201));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"name\": \"{{repeatedName}}\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/names",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "v1", "names"]
+        }
+      }
+    },
+    {
+      "name": "Insert another name",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('responds with 201 Created', () => pm.response.to.have.status(201));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"name\": \"Bruno\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/names",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "v1", "names"]
+        }
+      }
+    },
+    {
+      "name": "List names",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('responds with 200 OK', () => pm.response.to.have.status(200));",
+              "",
+              "pm.test('has the repeated name at least twice', () => {",
+              "    const repeated = pm.response.json().filter(record => record.name === pm.collectionVariables.get('repeatedName'));",
+              "    pm.expect(repeated.length).to.be.at.least(2);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/names",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "v1", "names"]
+        }
+      }
+    },
+    {
+      "name": "Update name (all records)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('responds with 200 OK', () => pm.response.to.have.status(200));",
+              "",
+              "pm.test('updates every record with that name', () => {",
+              "    pm.expect(pm.response.json().updated).to.be.at.least(2);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"name\": \"{{newName}}\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/names/{{repeatedName}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "v1", "names", "{{repeatedName}}"]
+        }
+      }
+    },
+    {
+      "name": "List names after update",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('no record keeps the old name', () => {",
+              "    const names = pm.response.json().map(record => record.name);",
+              "    pm.expect(names).to.not.include(pm.collectionVariables.get('repeatedName'));",
+              "    pm.expect(names).to.include(pm.collectionVariables.get('newName'));",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/names",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "v1", "names"]
+        }
+      }
+    },
+    {
+      "name": "Delete name (all records)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('responds with 200 OK', () => pm.response.to.have.status(200));",
+              "",
+              "pm.test('deletes every record with that name', () => {",
+              "    pm.expect(pm.response.json().deleted).to.be.at.least(2);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/names/{{newName}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "v1", "names", "{{newName}}"]
+        }
+      }
+    },
+    {
+      "name": "List names after delete",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('no record has the deleted name', () => {",
+              "    const names = pm.response.json().map(record => record.name);",
+              "    pm.expect(names).to.not.include(pm.collectionVariables.get('newName'));",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/names",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "v1", "names"]
+        }
+      }
+    },
+    {
+      "name": "Delete a name that does not exist",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('responds with 404 Not Found', () => pm.response.to.have.status(404));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/names/{{newName}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "v1", "names", "{{newName}}"]
+        }
+      }
+    }
+  ]
+}
